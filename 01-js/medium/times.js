@@ -9,5 +9,20 @@ There is no automated test for this one, this is more for you to understand time
 */
 
 function calculateTime(n) {
-    return 0.01;
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum += i;
+    }
+    console.log(sum);
 }
+
+let startTime = new Date();
+calculateTime(10000000000);
+let endTime = new Date();
+
+let timeEalpsed = endTime - startTime;
+
+console.log(timeEalpsed/1000); //milisecond to sec
+
+
+
