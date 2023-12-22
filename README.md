@@ -1,2 +1,1 @@
-#Solving JS assignments.
-#cohort-2
+##Solving JS assignments.
