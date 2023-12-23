@@ -7,3 +7,28 @@ Try to do an expensive operation below the file read and see how it affects the 
 Make the expensive operation more and more expensive and see how it affects the output. 
 */
 
+import { readFile } from "node:fs";
+
+
+//data will be printed at last
+readFile("a.txt", "utf-8", (err, data) => {
+    if (err) throw err;
+    console.log(data);
+})
+
+
+let a = 0;
+while (a < 1e10) {
+    a++;
+}
+
+console.log(`line 1`);
+
+console.log(`line 2`);
+
+a = 0;
+while (a < 1e10) {
+    a++;
+}
+
+console.log(`line 3`);
