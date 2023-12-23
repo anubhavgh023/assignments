@@ -5,6 +5,16 @@
  */
 
 function sleep(milliseconds) {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve();
+        }, milliseconds);
+    })
+}
+
+//Async await function: halts the js thread until sleep() is resolved
+async function main() {
+    await sleep(2000);
 }
 
 module.exports = sleep;
