@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
+const z = require('zod');
 const jwtPassword = 'secret';
 
 
 /**
  * Generates a JWT for a given username and password.
- *
  * @param {string} username - The username to be included in the JWT payload.
  *                            Must be a valid email address.
  * @param {string} password - The password to be included in the JWT payload.
@@ -13,20 +13,41 @@ const jwtPassword = 'secret';
  *                        Returns null if the username is not a valid email or
  *                        the password does not meet the length requirement.
  */
-function signJwt(username, password) {
-    // Your code here
+
+const userSchema = z.object({
+    username: z.string().email(),
+    password: z.string().min(6)
+})
+
+function isValidUser(username, password) {
+    const response = userSchema.safeParse({ username: username, password: password });
+    return response.success;
 }
+
+function signJwt(username, password) {
+    if (!isValidUser(username, password)) {
+        return null;
+    }
+    return jwt.sign({ username: username }, password);
+}
+
+
 
 /**
  * Verifies a JWT using a secret key.
- *
- * @param {string} token - The JWT string to verify.
- * @returns {boolean} Returns true if the token is valid and verified using the secret key.
- *                    Returns false if the token is invalid, expired, or not verified
- *                    using the secret key.
- */
+*
+* @param {string} token - The JWT string to verify.
+* @returns {boolean} Returns true if the token is valid and verified using the secret key.
+*                    Returns false if the token is invalid, expired, or not verified
+*                    using the secret key.
+*/
 function verifyJwt(token) {
-    // Your code here
+    try {
+        jwt.verify(token, jwtPassword);
+        return true;
+    } catch (error) {
+        return false;
+    }
 }
 
 /**
@@ -37,13 +58,22 @@ function verifyJwt(token) {
  *                         Returns false if the token is not a valid JWT format.
  */
 function decodeJwt(token) {
-    // Your code here
+    let flag = false;
+    const decodedPayload = jwt.decode(token);
+    if (decodedPayload) {
+        flag = true;
+    }
+    return flag;
 }
+
+let jwtToken = signJwt("anubhav@gmail.com", "123123");
+console.log(jwtToken);
+console.log(jwt.decode(jwtToken));
 
 
 module.exports = {
-  signJwt,
-  verifyJwt,
-  decodeJwt,
-  jwtPassword,
+    signJwt,
+    verifyJwt,
+    decodeJwt,
+    jwtPassword,
 };
