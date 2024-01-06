@@ -2,7 +2,6 @@ const jwt = require('jsonwebtoken');
 const z = require('zod');
 const jwtPassword = 'secret';
 
-
 /**
  * Generates a JWT for a given username and password.
  * @param {string} username - The username to be included in the JWT payload.

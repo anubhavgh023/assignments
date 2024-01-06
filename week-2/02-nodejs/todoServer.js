@@ -39,11 +39,143 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+import express, { json } from 'express';
+import { writeFile, readFile } from 'node:fs/promises';
+const port = 3000;
+
+const app = express();
+
+app.use(json());
+
+
+//function to read file from todos.json
+async function readTodoFile(filePath) {
+    try {
+        let fileData = await readFile(filePath, "utf-8");
+        return JSON.parse(fileData);
+
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+//function to write data to todos.json
+async function writeTodoFile(filePath, data) {
+    try {
+        await writeFile(filePath, data, 'utf-8');
+
+    } catch (error) {
+        console.error(error);
+        throw err;
+    }
+}
+
+//check if todo is present
+async function isTodoPresent(id) {
+    let todos = await readTodoFile("todos.json");
+    const isPresent = todos.find((todo) => todo.id === id);
+    return isPresent;
+}
+
+//file acting as a database
+const filePath = "todos.json";
+
+app.get("/todos", async (req, res) => {
+    try {
+        let todos = await readTodoFile(filePath);
+        res.json({
+            todos
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Internal Server Error"
+        })
+    }
+})
+
+
+app.get("/todos/:id", async (req, res) => {
+    const getId = Number(req.params.id);
+    const result = await isTodoPresent(getId);
+    if (result) {
+        res.json({
+            result
+        })
+    } else {
+        res.status(404).json({
+            msg: "id not found."
+        })
+    }
+})
+
+app.post("/todos", async (req, res) => {
+    const newTodo = req.body;
+    let todos = await readTodoFile(filePath);
+    console.log('before', todos);
+    try {
+        if (!isTodoPresent(newTodo.id)) {
+            todos.push(newTodo);
+            console.log(todos);
+            await writeTodoFile(filePath, JSON.stringify(todos));
+            res.send(201).json({
+                todos
+            });
+        } else {
+            res.status(404).json({
+                msg: `todo is already present with id:${newTodo.id},set a unique id.`
+            })
+        }
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            error: "Internal Server Error"
+        })
+        throw error;
+    }
+
+})
+
+app.put("/todos/:id", (req, res) => {
+    const updateId = Number(req.params.id);
+    if (isTodoPresent(updateId)) {
+        let index = todos.findIndex((todo) => todo.id === updateId);
+        todos[index] = req.body;
+        res.json({
+            msg: `updated todo of id: ${updateId}`
+        })
+    } else {
+        res.status(404).json({
+            msg: `no todo found with id:${updateId}`
+        })
+    }
+})
+
+app.delete("/todos/:id", (req, res) => {
+    const deleteId = Number(req.params.id);
+    if (isTodoPresent(deleteId)) {
+        let index = todos.findIndex((todo) => todo.id === deleteId);
+        todos.splice(index, 1);
+        res.json({
+            msg: `deleted todo of id: ${deleteId}`
+        })
+    } else {
+        res.status(404).json({
+            msg: `no todo found with id:${deleteId}`
+        })
+    }
+
+})
+
+// Handle invalid routes (404)
+app.use((req, res) => {
+    res.status(404).json({ error: 'Not Found' });
+});
+
+app.listen(port, () => {
+    console.log(`Listening on port: ${port}`);
+})
+
+export default app;
